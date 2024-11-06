@@ -9,8 +9,7 @@ import { setToken, getToken } from '../config/tokenManager';
 import { currentUser } from '../model/currentUserData';
 
 function Login(props) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formValues, setFormValues] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState(false);
 
@@ -19,12 +18,12 @@ function Login(props) {
   const submitHandler = async (e) => {
     e.preventDefault();
     try {
-      const response = await axiosInstance.post('/auth', { email, password });
+      const response = await axiosInstance.post('/auth', formValues);
 
       if (response.data.success) {
         const token = response.data.data.accessToken;
         const refreshToken = response.data.data.refreshToken;
-         setToken(token);
+        setToken(token);
         console.log(getToken());
         console.log(refreshToken);
         var userData = response.data.data;
@@ -33,15 +32,15 @@ function Login(props) {
         currentUser.department = userData.department;
         currentUser.role = userData.role;
         currentUser.email = userData.email;
-        currentUser.profileImage = userData.profileImage
+        currentUser.profileImage = userData.profileImage;
         currentUser.password = userData.password;
         currentUser.username = userData.first_name;
         currentUser.phone = userData.phone_num;
         localStorage.setItem('currentUser', JSON.stringify(currentUser));
-        localStorage.setItem('token',token)
-        localStorage.setItem('refreshToken',refreshToken)
-        
-         navigate('/');
+        localStorage.setItem('token', token);
+        localStorage.setItem('refreshToken', refreshToken);
+
+        navigate('/');
       } else {
         setLoginError(true);
       }
@@ -51,38 +50,47 @@ function Login(props) {
     }
   };
 
-
   const showPasswordHandler = () => setShowPassword((show) => !show);
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormValues((prevValues) => ({
+      ...prevValues,
+      [name]: value,
+    }));
+  };
+
   return (
-    <div className="login-container">
-      <h1 className="login-title">Welcome back!</h1>
-      <form className="login-form" onSubmit={submitHandler}>
-        <label htmlFor="email" className="login-label">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-4">
+      <h1 className="text-4xl mb-4 text-white">Welcome back!</h1>
+      <form className="flex flex-col items-center justify-center w-full max-w-md p-8 rounded-lg bg-white" onSubmit={submitHandler}>
+        <label htmlFor="email" className="text-lg mt-4 text-gray-800">
           Email
         </label>
         <TextField
-        autoFocus
+          autoFocus
           type="email"
+          name="email"
           label="Email"
           variant="outlined"
-          className="login-input"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          className="w-full mb-4"
+          value={formValues.email}
+          onChange={handleChange}
           InputProps={{
             startAdornment: <EmailOutlined className="icon" />,
           }}
         />
-        <label htmlFor="password" className="login-label">
+        <label htmlFor="password" className="text-lg mt-4 text-gray-800">
           Password
         </label>
         <TextField
           type={showPassword ? 'text' : 'password'}
+          name="password"
           label="Password"
           variant="outlined"
-          className="login-input"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          className="w-full mb-4"
+          value={formValues.password}
+          onChange={handleChange}
           InputProps={{
             startAdornment: <LockOutlined className="icon" />,
             endAdornment: (
@@ -92,10 +100,10 @@ function Login(props) {
             ),
           }}
         />
-        <button type="submit" className="login-button">
+        <button type="submit" className="w-full py-2 mt-4 rounded-lg bg-gray-900 text-white font-bold transition duration-300 ease-in-out hover:bg-gray-700">
           Login
         </button>
-        {loginError && <p className="login-error">Incorrect email or password. Please try again.</p>}
+        {loginError && <p className="text-red-600 mt-4 rounded-lg">Incorrect email or password. Please try again.</p>}
       </form>
     </div>
   );
